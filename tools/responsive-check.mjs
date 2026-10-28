@@ -55,7 +55,8 @@ const widths = [1440, 1280, 1100, 900, 760, 620, 480];
 const rows = [];
 for (const w of widths) {
   await send("Emulation.setDeviceMetricsOverride", { width: w, height: 1000, deviceScaleFactor: 1, mobile: false });
-  await send("Page.navigate", { url: "http://127.0.0.1:5174/" });
+  // 默认打本地预览；设 SYNTENY_URL 就能对已部署的站点跑同一套断言。
+  await send("Page.navigate", { url: process.env.SYNTENY_URL || "http://127.0.0.1:5174/" });
   await sleep(1100);
   await ev(`document.getElementById('btnDemo').click()`);
   for (let i = 0; i < 120; i += 1) {

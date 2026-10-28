@@ -189,7 +189,9 @@ await cdp.send("Emulation.setDeviceMetricsOverride", {
   deviceScaleFactor: 1,
   mobile: false,
 });
-await cdp.send("Page.navigate", { url: "http://127.0.0.1:5174/" });
+// 默认打本地预览；设 SYNTENY_URL 就能对已部署的站点跑同一套断言。
+const target = process.env.SYNTENY_URL || "http://127.0.0.1:5174/";
+await cdp.send("Page.navigate", { url: target });
 await sleep(1200);
 
 const doc = await cdp.send("DOM.getDocument");
