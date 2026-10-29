@@ -7,6 +7,7 @@ import type { RunRequest, RunReply, RunSuccess } from "./ui/worker.js";
 import { startGlyph } from "./ui/glyph.js";
 import { initTheme } from "./ui/theme.js";
 import { t, lang, initLang, onLangChange } from "./i18n.js";
+import { downloadPng } from "./ui/export.js";
 
 /**
  * Page controller.
@@ -61,6 +62,7 @@ const el = {
   btnDemo: $<HTMLButtonElement>("btnDemo"),
   btnRun: $<HTMLButtonElement>("btnRun"),
   btnCsv: $<HTMLButtonElement>("btnCsv"),
+  btnPng: $<HTMLButtonElement>("btnPng"),
   hint: $("hint"),
   plot: $<HTMLCanvasElement>("plot"),
   plotEmpty: $("plotEmpty"),
@@ -301,6 +303,7 @@ function paint(res: RunSuccess): void {
   paintCaption(res);
 
   el.btnCsv.disabled = res.segs.length === 0;
+  el.btnPng.disabled = res.segs.length === 0;
 }
 
 /** Repaint the canvas from current state. Every visual change goes through
@@ -614,6 +617,31 @@ el.btnCsv.addEventListener("click", () => {
   a.download = "synteny-segments.csv";
   a.click();
   URL.revokeObjectURL(url);
+});
+
+// 导出当前这一屏：所见即所得，连缩放后的视图也照原样导出。
+// 选中框不导出——图是要拿去用的，一圈虚线只会碍事。
+el.btnPng.addEventListener("click", () => {
+  if (S.result === null) return;
+  const s = S.result.stats;
+  const rect = el.plot.getBoundingClientRect();
+  const stamp = new Date().toISOString().slice(0, 10);
+  void downloadPng(
+    {
+      w: rect.width,
+      h: rect.height,
+      input: {
+        pts: S.result.pts,
+        nRef: s.nRef,
+        nQry: s.nQry,
+        view: S.view ?? fullView(s.nRef, s.nQry),
+        highlight: null,
+      },
+      caption: (el.caption.textContent ?? "").replace(/\s+/g, " ").trim(),
+      footer: t("png.footer"),
+    },
+    `synteny-${stamp}.png`,
+  );
 });
 
 /* wire file inputs by click and by drag */

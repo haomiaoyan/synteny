@@ -112,14 +112,34 @@ function ensureBuffer(size: number): HTMLCanvasElement | null {
 }
 
 /**
+ * Explicit geometry for rendering to a canvas that is not in the document.
+ *
+ * The normal path measures the live element, which an offscreen canvas cannot
+ * answer, and clamps dpr to the screen's. Export needs both forced.
+ */
+export interface PlotSize {
+  /** CSS width to lay out against. */
+  w: number;
+  /** CSS height to lay out against. */
+  h: number;
+  /** Device pixels per CSS pixel. 2 means "twice as sharp as a 1x screen". */
+  dpr: number;
+}
+
+/**
  * Render one plot into a canvas.
  *
  * Returns the geometry so the caller can map pointer positions back to genome
  * coordinates without re-deriving the layout.
  */
-export function drawPlot(canvas: HTMLCanvasElement, input: PlotInput): PlotState | null {
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const rect = canvas.getBoundingClientRect();
+export function drawPlot(
+  canvas: HTMLCanvasElement,
+  input: PlotInput,
+  size?: PlotSize,
+): PlotState | null {
+  const dpr = size !== undefined ? size.dpr : Math.min(window.devicePixelRatio || 1, 2);
+  const rect =
+    size !== undefined ? { width: size.w, height: size.h } : canvas.getBoundingClientRect();
   if (rect.width < 10 || rect.height < 10) return null;
 
   canvas.width = Math.round(rect.width * dpr);
