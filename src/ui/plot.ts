@@ -1,4 +1,8 @@
 import type { Segment, SeedPoints } from "../core/types.js";
+import { readPalette, TIER_PEAK } from "./palette.js";
+
+/** Structural tier of a reported segment; matches the seed classes above. */
+const TYPE_TIER = { col: 0, inv: 1, trn: 2 } as const;
 
 /**
  * Dot-plot renderer.
@@ -27,29 +31,6 @@ import type { Segment, SeedPoints } from "../core/types.js";
  * a seed inside a reported block is evidence of that block, whereas a noise
  * seed in the same place is only background.
  */
-
-export const COLORS = {
-  bg: "#0d0b09",
-  grid: "rgba(236,231,220,0.040)",
-  border: "rgba(236,231,220,0.14)",
-  tick: "rgba(236,231,220,0.22)",
-  tickText: "#6b6459",
-  col: "#ece7dc",
-  inv: "#d9a441",
-  trn: "#e08c5a",
-  noise: "rgba(140,131,118,0.75)",
-} as const;
-
-/** Lower index wins when several tiers land on one cell. */
-const TIER_RGB: readonly (readonly [number, number, number])[] = [
-  [236, 231, 220], // collinear
-  [217, 164, 65], // inverted
-  [224, 140, 90], // translocated
-  [150, 141, 127], // noise
-];
-
-/** Peak opacity per tier: noise must never compete with the signal. */
-const TIER_PEAK: readonly number[] = [0.95, 0.95, 0.92, 0.55];
 
 /**
  * Seed splat radius in device pixels.
@@ -155,7 +136,8 @@ export function drawPlot(canvas: HTMLCanvasElement, input: PlotInput): PlotState
 
   const view = input.view ?? fullView(input.nRef, input.nQry);
 
-  g.fillStyle = COLORS.bg;
+  const P = readPalette();
+  g.fillStyle = P.bg;
   g.fillRect(0, 0, w, h);
 
   drawPoints(g, input, view, pad, inner, dpr);
@@ -224,7 +206,7 @@ function drawPoints(
     const k = occupied[oi];
     const t = tiers[k];
     const tier = t < 4 ? t : 3;
-    const [r, gg, b] = TIER_RGB[tier];
+    const [r, gg, b] = readPalette().tierRgb[tier];
     const sat = 1 - Math.exp(-counts[k] / TAU);
     const a = TIER_PEAK[tier] * sat;
     const core = Math.round(a * 255);
@@ -270,7 +252,7 @@ function drawPoints(
 }
 
 function drawGrid(g: CanvasRenderingContext2D, pad: number, inner: number): void {
-  g.strokeStyle = COLORS.grid;
+  g.strokeStyle = readPalette().grid;
   g.lineWidth = 1;
   for (let i = 1; i < 8; i++) {
     const p = Math.round(pad + (i / 8) * inner) + 0.5;
@@ -292,7 +274,7 @@ function drawFrame(
   inner: number,
   input: PlotInput,
 ): void {
-  g.strokeStyle = COLORS.border;
+  g.strokeStyle = readPalette().border;
   g.lineWidth = 1;
   g.strokeRect(pad + 0.5, pad + 0.5, inner - 1, inner - 1);
 
@@ -304,7 +286,7 @@ function drawFrame(
   if (!isFullView(view, input.nRef, input.nQry)) return;
   g.save();
   g.setLineDash([2, 4]);
-  g.strokeStyle = "rgba(236,231,220,0.10)";
+  g.strokeStyle = readPalette().diagonal;
   g.beginPath();
   g.moveTo(pad, pad + inner);
   g.lineTo(pad + inner, pad);
@@ -343,7 +325,7 @@ function drawHighlight(
   const w = x1 - x0;
   const h = y1 - y0;
   g.save();
-  g.strokeStyle = seg.type === "col" ? "#ece7dc" : seg.type === "inv" ? "#d9a441" : "#e08c5a";
+  g.strokeStyle = readPalette().tierCss[TYPE_TIER[seg.type]];
   g.lineWidth = 1;
   if (w < 6 || h < 6) {
     g.beginPath();
@@ -376,8 +358,8 @@ function drawTicks(
   const ux = unitFor(view.r1 - view.r0);
   const uy = unitFor(view.q1 - view.q0);
 
-  g.strokeStyle = COLORS.tick;
-  g.fillStyle = COLORS.tickText;
+  g.strokeStyle = readPalette().tick;
+  g.fillStyle = readPalette().tickText;
   g.font = "9.5px ui-monospace, Menlo, monospace";
   g.lineWidth = 1;
 

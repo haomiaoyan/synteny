@@ -18,6 +18,9 @@
   --amber: #d9a441;
   --ok: #7d9b6a;
   --err: #d1614a;
+  /* 点阵图里「噪声」种子的颜色。画布颜色也由 CSS 变量驱动，
+     所以主题换色时图和页面不会脱节。 */
+  --dot-noise: #968d7f;
 }
 
 * { box-sizing: border-box; }

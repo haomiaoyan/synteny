@@ -166,7 +166,17 @@ const info = await cdp.eval(`(() => {
     rows,
     bodyScrollW: document.body.scrollWidth,
     innerW: innerWidth,
-    plotRect: (() => { const r = document.getElementById('plot').getBoundingClientRect(); return { w: Math.round(r.width), h: Math.round(r.height) } })(),
+    // x/y are page coordinates so a pixel diff can be restricted to the figure
+    // instead of blaming font antialiasing for a canvas regression.
+    plotRect: (() => {
+      const r = document.getElementById('plot').getBoundingClientRect();
+      return {
+        x: Math.round(r.x + window.scrollX),
+        y: Math.round(r.y + window.scrollY),
+        w: Math.round(r.width),
+        h: Math.round(r.height),
+      };
+    })(),
   };
 })()`);
 
