@@ -14,7 +14,7 @@ import { join } from "node:path";
 const CHROME = "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const port = 9300 + Math.floor(Math.random() * 80);
 const chrome = spawn(CHROME, [
-  "--headless=new", "--disable-gpu", "--no-first-run", "--no-default-browser-check",
+  "--headless=new", "--lang=zh-CN", "--disable-gpu", "--no-first-run", "--no-default-browser-check",
   "--hide-scrollbars", `--remote-debugging-port=${port}`,
   `--user-data-dir=${mkdtempSync(join(tmpdir(), "resp-"))}`, "about:blank",
 ], { stdio: "ignore" });

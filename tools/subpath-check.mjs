@@ -33,7 +33,7 @@ await new Promise((r) => server.listen(5299, "127.0.0.1", r));
 
 const CHROME = "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const port = 9400 + Math.floor(Math.random() * 90);
-const chrome = spawn(CHROME, ["--headless=new", "--disable-gpu", "--no-first-run", "--hide-scrollbars",
+const chrome = spawn(CHROME, ["--headless=new", "--lang=zh-CN", "--disable-gpu", "--no-first-run", "--hide-scrollbars",
   `--remote-debugging-port=${port}`, `--user-data-dir=${mkdtempSync(join(tmpdir(), "sp-"))}`, "about:blank"], { stdio: "ignore" });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let ws = null;
@@ -77,7 +77,7 @@ for (let i = 0; i < 160; i += 1) {
 const out = await ev(`(() => ({
   segs: document.querySelectorAll('#tbody tr').length,
   ready: document.getElementById('figDot').classList.contains('ready'),
-  seeds: (document.getElementById('mSeeds')?.textContent ?? '').trim(),
+  seeds: (document.getElementById('nSeeds')?.textContent ?? '').trim(),
   workerScript: performance.getEntriesByType('resource').map(r => r.name.split('/synteny/')[1]).filter(n => n && n.includes('worker'))
 }))()`);
 console.log(JSON.stringify({ clicked, out, errs: errs.slice(0, 3), failed: failed.slice(0, 6) }, null, 2));

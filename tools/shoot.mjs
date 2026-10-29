@@ -29,7 +29,7 @@ const profile = mkdtempSync(join(tmpdir(), "synteny-app-"));
 const chrome = spawn(
   CHROME,
   [
-    "--headless=new",
+    "--headless=new", "--lang=zh-CN",
     "--disable-gpu",
     "--no-first-run",
     "--no-default-browser-check",

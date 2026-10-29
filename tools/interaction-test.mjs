@@ -23,7 +23,7 @@ const profile = mkdtempSync(join(tmpdir(), "synteny-int-prof-"));
 const chrome = spawn(
   CHROME,
   [
-    "--headless=new", "--disable-gpu", "--no-first-run", "--no-default-browser-check",
+    "--headless=new", "--lang=zh-CN", "--disable-gpu", "--no-first-run", "--no-default-browser-check",
     "--hide-scrollbars", "--force-color-profile=srgb",
     `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`,
     "--window-size=1440,1100", "about:blank",

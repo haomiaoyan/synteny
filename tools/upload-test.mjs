@@ -25,7 +25,7 @@ const profile = mkdtempSync(join(tmpdir(), "synteny-upload-"));
 const chrome = spawn(
   CHROME,
   [
-    "--headless=new",
+    "--headless=new", "--lang=zh-CN",
     "--disable-gpu",
     "--no-first-run",
     "--no-default-browser-check",
@@ -212,13 +212,19 @@ await sleep(900);
 await setFile("fileQry", qryPath);
 await sleep(900);
 
-const loaded = await cdp.eval(`(() => ({
-  refName: document.getElementById('refName')?.textContent,
-  qryName: document.getElementById('qryName')?.textContent,
-  refMeta: document.getElementById('refMeta')?.textContent,
-  qryMeta: document.getElementById('qryMeta')?.textContent,
-  err: document.getElementById('err')?.textContent?.trim(),
-}))()`);
+const loaded = await cdp.eval(`(() => {
+  const t = (id) => document.getElementById(id)?.textContent?.trim() ?? null;
+  const hint = document.getElementById('hint');
+  return {
+    refName: t('nameRef'),
+    qryName: t('nameQry'),
+    refMeta: t('metaRef'),
+    qryMeta: t('metaQry'),
+    // 解析失败时错误写进 #hint 并附 .err；只取文本无法区分「成功提示」和「报错」
+    hint: t('hint'),
+    hintIsError: hint ? hint.classList.contains('err') : null,
+  };
+})()`);
 
 await cdp.eval(`document.getElementById('btnRun').click()`);
 
@@ -232,12 +238,13 @@ await sleep(600);
 
 const result = await cdp.eval(`(() => {
   const t = (id) => { const e = document.getElementById(id); return e ? e.textContent : null };
+  const hint = document.getElementById('hint');
   return {
     ready: ${ok},
     hint: t('hint'), cols: t('nCol'), inv: t('nInv'), trn: t('nTrn'),
     noise: t('nNoise'), cov: t('nCov'), seeds: t('nSeeds'),
     k: t('figK'), size: t('figSize'), time: t('figTime'),
-    caption: t('caption'), err: t('err'),
+    caption: t('caption'), hintIsError: hint ? hint.classList.contains('err') : null,
     rows: Array.from(document.querySelectorAll('#tbody tr')).map((tr) =>
       Array.from(tr.children).map((td) => td.textContent)),
     csvDisabled: document.getElementById('btnCsv').disabled,
