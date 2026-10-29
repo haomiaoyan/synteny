@@ -69,7 +69,12 @@ class Cdp {
   }
   async eval(expression) {
     const r = await this.send("Runtime.evaluate", { expression, awaitPromise: true, returnByValue: true });
-    if (r.exceptionDetails) throw new Error(JSON.stringify(r.exceptionDetails).slice(0, 300));
+    if (r.exceptionDetails) {
+      // 先给消息，再给被截断的原始结构：只留结构会正好把原因切掉。
+      const d = r.exceptionDetails;
+      const msg = d.exception?.description ?? d.text ?? "unknown";
+      throw new Error(`${msg}\n--- raw: ${JSON.stringify(d).slice(0, 600)}`);
+    }
     return r.result.value;
   }
   async shot(name) {
@@ -96,11 +101,17 @@ const out = {};
 const txt = (id) => `(document.getElementById('${id}')||{}).textContent`;
 
 // ---- 1. run the built-in demo -------------------------------------------
-await cdp.eval(`document.getElementById('btnDemo').click()`);
-for (let i = 0; i < 160; i += 1) {
-  if (await cdp.eval(`document.getElementById('figDot').classList.contains('ready')`)) break;
-  await sleep(250);
+// 远端站点首次加载要先拉 chunk，点早了监听器还没绑上，会静默落空；
+// 后面的断言就会对着空页面跑，报出来的错跟真正的原因毫无关系。
+let demoReady = false;
+for (let attempt = 0; attempt < 3 && !demoReady; attempt += 1) {
+  await cdp.eval(`document.getElementById('btnDemo').click()`);
+  for (let i = 0; i < 160; i += 1) {
+    if (await cdp.eval(`!!document.getElementById('figDot')?.classList.contains('ready')`)) { demoReady = true; break; }
+    await sleep(250);
+  }
 }
+if (!demoReady) throw new Error("demo never became ready after 3 attempts: 页面可能根本没启动");
 out.demo = {
   cols: await cdp.eval(txt("nCol")),
   inv: await cdp.eval(txt("nInv")),
@@ -108,6 +119,17 @@ out.demo = {
   cov: await cdp.eval(txt("nCov")),
   seeds: await cdp.eval(txt("nSeeds")),
   rows: await cdp.eval(`document.querySelectorAll('#tbody tr').length`),
+  // 表格是 DOM 逐行建出来的，抓统计时可能还差最后一行；这里等它稳定。
+  rowsSettled: await (async () => {
+    let last = -1;
+    for (let i = 0; i < 40; i += 1) {
+      const n = await cdp.eval(`document.querySelectorAll('#tbody tr').length`);
+      if (n === last && n > 0) return n;
+      last = n;
+      await sleep(100);
+    }
+    return last;
+  })(),
   hint: await cdp.eval(txt("hint")),
   xaxis: await cdp.eval(txt("xaxis")),
   ylab: await cdp.eval(txt("ylab")),
