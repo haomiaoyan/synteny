@@ -92,12 +92,22 @@ const empty = await evalIn(GRAB);
 
 // 语言按钮必须在加载后自己出现。它是 hidden 起手的，若“显示”写在点击回调里，
 // 用户永远点不到——脚本用 JS 点击会绕过 hidden，所以只有这里能查出问题。
-const langBtn = await evalIn(`(() => {
+// 但远端首次加载要拉 chunk，读太早会读到还没执行的标记，所以轮询到出现为止；
+// 等到多少毫秒本身就是证据：久等不来才是真故障。
+const probeBtn = `(() => {
   const b = document.getElementById('btnLang');
   if (!b) return { present: false };
   const cs = getComputedStyle(b);
   return { present: true, hidden: b.hasAttribute('hidden'), display: cs.display, visible: !b.hasAttribute('hidden') && cs.display !== 'none' };
-})()`);
+})()`;
+let langBtn = await evalIn(probeBtn);
+let btnWaitMs = 0;
+for (let i = 0; i < 100 && langBtn.visible !== true; i += 1) {
+  await sleep(100);
+  btnWaitMs += 100;
+  langBtn = await evalIn(probeBtn);
+}
+langBtn.waitedMs = btnWaitMs;
 
 // 跑一遍示例数据，让动态文案（提示、图注、表头、类型名）也出现在页面上。
 // 远端站点首次加载要拉 chunk + worker，点早了监听器还没绑上，所以失败就再点一次。
@@ -125,8 +135,13 @@ const zhAgain = await evalIn(GRAB);
 writeFileSync('tools/shots/en-text.txt', `${en.norm}
 `, 'utf8');
 const same = (a, b) => a === b;
+// 提示语里带着真实耗时（“15 个区段 · 0.18 s · 覆盖 95.0%”），每次都不同。
+// 不抹掉它，这个断言测的就是机器快慢，不是文案有没有被改坏。
+const stripTime = (s) => s.replace(/\d+(?:\.\d+)? s\b/g, "<t> s");
+const zhNorm = stripTime(zh.norm);
+const baseFilled = stripTime(baseline.filled.norm);
 console.log(JSON.stringify({
-  zhMatchesBaseline: same(zh.norm, baseline.filled.norm),
+  zhMatchesBaseline: same(zhNorm, baseFilled),
   emptyMatchesBaseline: same(empty.norm, baseline.empty.norm),
   zhChars: zh.norm.length,
   langBtnVisibleAtLoad: langBtn,
@@ -137,11 +152,11 @@ console.log(JSON.stringify({
   enTh: en.th,
   enBtn: en.btn,
   enHidden: en.hidden,
-  zhAfterToggleBack: same(zhAgain.norm, zh.norm),
+  zhAfterToggleBack: same(stripTime(zhAgain.norm), zhNorm),
   zhTitleBack: zhAgain.title,
   // 中文基线第一处不一致，方便定位是哪个词条写错了
   firstDiff: (() => {
-    const a = baseline.filled.norm, b = zh.norm;
+    const a = baseFilled, b = zhNorm;
     if (a === b) return null;
     for (let i = 0; i < Math.max(a.length, b.length); i += 1) {
       if (a[i] !== b[i]) return { at: i, was: a.slice(i, i + 40), now: b.slice(i, i + 40) };
