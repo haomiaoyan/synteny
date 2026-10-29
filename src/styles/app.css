@@ -107,6 +107,14 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* 英文换成拉丁优先的衬线。
+   中文衬线排在前面时，英文也会落到宋体上——宋体的西文又窄又小，
+   整段英文读起来像注脚。这不是"翻译完顺手换个字体"，是换排版。 */
+[data-lang="en"] body {
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Charter, Georgia, serif;
+  line-height: 1.72;
+}
+
 /* 极淡纸纹，压在内容之下；纯装饰，不参与布局 */
 body::before {
   content: "";

@@ -30,7 +30,7 @@ try {
   <div class="mast">
     <div class="mast-top">
       <h1>Synteny</h1>
-      <span class="desc">一个用来读基因组结构的小工具</span>
+      <span class="desc" data-i18n="mast.desc">一个用来读基因组结构的小工具</span>
       <span class="spacer"></span>
       <div class="ctrls">
         <span class="issue">MIT · v0.1</span>
@@ -48,30 +48,30 @@ try {
       </div>
     </div>
     <nav class="subnav">
-      <a class="on" href="#tool">工具</a>
-      <a href="#method">方法</a>
-      <a href="#limits">不算什么</a>
-      <span class="r">完全在浏览器内运行 · 无服务器 · 零上传</span>
+      <a class="on" href="#tool" data-i18n="nav.tool">工具</a>
+      <a href="#method" data-i18n="nav.method">方法</a>
+      <a href="#limits" data-i18n="nav.limits">不算什么</a>
+      <span class="r" data-i18n="nav.r">完全在浏览器内运行 · 无服务器 · 零上传</span>
     </nav>
   </div>
 
   <div class="head">
-    <div class="kicker">基因组结构 · 点阵比对</div>
+    <div class="kicker" data-i18n="hero.kicker">基因组结构 · 点阵比对</div>
     <div class="hero">
-      <h2 class="title">两个基因组之间，<br><span class="thin">究竟是哪里不一样。</span></h2>
+      <h2 class="title" data-i18n-html="hero.title">两个基因组之间，<br><span class="thin">究竟是哪里不一样。</span></h2>
       <canvas id="glyph" class="glyph" width="120" height="120" aria-hidden="true"></canvas>
     </div>
-    <p class="standfirst">
+    <p class="standfirst" data-i18n-html="hero.standfirst">
       不做碱基级比对，不上传任何序列。把两个 FASTA 拖进浏览器，
       它会告诉你哪几段是对齐的、哪一段整个倒了过来、哪一段搬到了别处——<b>一张图，一眼。</b>
     </p>
   </div>
 
   <div class="specstrip">
-    <div class="spec"><div class="k">方法</div><div class="v">minimiser + 链化</div></div>
-    <div class="spec"><div class="k">适用范围</div><div class="v">≤ 50 <small>Mbp</small></div></div>
-    <div class="spec"><div class="k">计算位置</div><div class="v">Web Worker</div></div>
-    <div class="spec"><div class="k">上传字节</div><div class="v">0</div></div>
+    <div class="spec"><div class="k" data-i18n="spec.method.k">方法</div><div class="v" data-i18n="spec.method.v">minimiser + 链化</div></div>
+    <div class="spec"><div class="k" data-i18n="spec.scope.k">适用范围</div><div class="v">≤ 50 <small>Mbp</small></div></div>
+    <div class="spec"><div class="k" data-i18n="spec.where.k">计算位置</div><div class="v">Web Worker</div></div>
+    <div class="spec"><div class="k" data-i18n="spec.upload.k">上传字节</div><div class="v">0</div></div>
   </div>
 
   <!-- ============ tool ============ -->
@@ -79,10 +79,10 @@ try {
 
     <div class="io">
       <div class="slot" id="slotRef" data-role="ref">
-        <div class="slot-h"><span class="tag">参考</span><span class="slot-k">Reference</span></div>
+        <div class="slot-h"><span class="tag" data-i18n="slot.ref.tag">参考</span><span class="slot-k">Reference</span></div>
         <div class="slot-body">
-          <div class="slot-name" id="nameRef">未选择</div>
-          <div class="slot-meta" id="metaRef">拖入 FASTA（可 .gz），或点击选择</div>
+          <div class="slot-name" id="nameRef" data-i18n="slot.name.empty">未选择</div>
+          <div class="slot-meta" id="metaRef" data-i18n="slot.meta.empty">拖入 FASTA（可 .gz），或点击选择</div>
         </div>
         <input type="file" id="fileRef" accept=".fa,.fasta,.fna,.fas,.txt,.gz" hidden>
       </div>
@@ -90,27 +90,27 @@ try {
       <div class="x">×</div>
 
       <div class="slot" id="slotQry" data-role="qry">
-        <div class="slot-h"><span class="tag">查询</span><span class="slot-k">Query</span></div>
+        <div class="slot-h"><span class="tag" data-i18n="slot.qry.tag">查询</span><span class="slot-k">Query</span></div>
         <div class="slot-body">
-          <div class="slot-name" id="nameQry">未选择</div>
-          <div class="slot-meta" id="metaQry">拖入 FASTA（可 .gz），或点击选择</div>
+          <div class="slot-name" id="nameQry" data-i18n="slot.name.empty">未选择</div>
+          <div class="slot-meta" id="metaQry" data-i18n="slot.meta.empty">拖入 FASTA（可 .gz），或点击选择</div>
         </div>
         <input type="file" id="fileQry" accept=".fa,.fasta,.fna,.fas,.txt,.gz" hidden>
       </div>
     </div>
 
     <div class="go">
-      <button class="btn" id="btnDemo">打开示例数据</button>
-      <button class="btn btn2" id="btnRun" disabled>开始比对</button>
-      <span class="hint" id="hint">示例数据是两个程序合成的基因组，含倒位、易位与一段重复。</span>
+      <button class="btn" id="btnDemo" data-i18n="btn.demo">打开示例数据</button>
+      <button class="btn btn2" id="btnRun" disabled data-i18n="btn.run">开始比对</button>
+      <span class="hint" id="hint" data-i18n="hint.default">示例数据是两个程序合成的基因组，含倒位、易位与一段重复。</span>
     </div>
 
     <div class="adv">
-      <label><input type="checkbox" id="advToggle"> 手动调参</label>
+      <label><input type="checkbox" id="advToggle"> <span data-i18n="adv.toggle">手动调参</span></label>
       <div class="adv-body" id="advBody" hidden>
         <label>k <input type="number" id="inK" min="9" max="21" value="15"></label>
         <label>w <input type="number" id="inW" min="4" max="256" value="24"></label>
-        <span class="adv-note">k 越大越严格，w 越大种子越稀。留空则按序列长度自动选择。</span>
+        <span class="adv-note" data-i18n="adv.note">k 越大越严格，w 越大种子越稀。留空则按序列长度自动选择。</span>
       </div>
     </div>
   </section>
@@ -120,7 +120,7 @@ try {
     <div class="fig-outer">
       <div class="fig-bar">
         <span class="dot" id="figDot"></span>
-        <span id="figTitle">尚无数据</span>
+        <span id="figTitle" data-i18n="fig.title.empty">尚无数据</span>
         <span class="right">
           <button class="zoomchip" id="figZoom" hidden title="恢复到完整视图">1×</button>
           <span><b id="figSize">—</b> Mbp</span>
@@ -133,23 +133,23 @@ try {
         <div class="plotbox">
           <canvas id="plot"></canvas>
           <div class="empty" id="plotEmpty">
-            <div class="empty-t">还没有比对结果</div>
-            <div class="empty-s">打开示例数据，或拖入自己的两个 FASTA</div>
+            <div class="empty-t" data-i18n="empty.t">还没有比对结果</div>
+            <div class="empty-s" data-i18n="empty.s">打开示例数据，或拖入自己的两个 FASTA</div>
           </div>
           <div class="dragging" id="dragRect" hidden></div>
           <div class="readout" id="readout" hidden></div>
         </div>
         <div class="side">
-          <div class="h">区段</div>
-          <div class="lg"><s style="background:var(--paper)"></s>共线<span class="v" id="nCol">—</span></div>
-          <div class="lg"><s style="background:var(--amber)"></s>倒位<span class="v" id="nInv">—</span></div>
-          <div class="lg"><s style="background:var(--accent-soft)"></s>易位<span class="v" id="nTrn">—</span></div>
-          <div class="lg"><s style="background:var(--rule2)"></s>噪声<span class="v" id="nNoise">—</span></div>
+          <div class="h" data-i18n="legend.h">区段</div>
+          <div class="lg"><s style="background:var(--paper)"></s><span data-i18n="legend.col">共线</span><span class="v" id="nCol">—</span></div>
+          <div class="lg"><s style="background:var(--amber)"></s><span data-i18n="legend.inv">倒位</span><span class="v" id="nInv">—</span></div>
+          <div class="lg"><s style="background:var(--accent-soft)"></s><span data-i18n="legend.trn">易位</span><span class="v" id="nTrn">—</span></div>
+          <div class="lg"><s style="background:var(--rule2)"></s><span data-i18n="legend.noise">噪声</span><span class="v" id="nNoise">—</span></div>
           <div class="divider"></div>
-          <div class="lg"><span>覆盖</span><span class="v" id="nCov">—</span></div>
-          <div class="lg"><span>种子</span><span class="v" id="nSeeds">—</span></div>
+          <div class="lg"><span data-i18n="legend.cov">覆盖</span><span class="v" id="nCov">—</span></div>
+          <div class="lg"><span data-i18n="legend.seeds">种子</span><span class="v" id="nSeeds">—</span></div>
           <div class="divider"></div>
-          <div class="mini">
+          <div class="mini" data-i18n-html="legend.note">
             点密度经分箱。<br>
             仅表示结构对应，<br>
             不表示碱基一致性。
@@ -158,7 +158,7 @@ try {
       </div>
       <div class="xaxis" id="xaxis">Reference · Mbp</div>
     </div>
-    <figcaption id="caption">
+    <figcaption id="caption" data-i18n-html="cap.static">
       <span class="n">图 1</span>主对角线是共线保守区段；落在主轴之外、斜率为正的独立方块是易位；
       斜率为负的一段是倒位。刻度以 Mbp 计。
     </figcaption>
@@ -167,57 +167,57 @@ try {
   <!-- ============ table + prose ============ -->
   <div class="body-grid">
     <div class="prose" id="method">
-      <p>
+      <p data-i18n-html="prose.p1">
         <span class="dropcap">点</span>阵比对是基因组学里最古老的观察方式之一：两条序列分置两轴，
         彼此相似处点一个点。共线的地方连成对角线，倒过来的地方是一条反斜线，
         搬了家的地方则是脱离主轴的方块。它不解释原因，但把「结构」变成了一眼可见的东西。
       </p>
-      <p>
+      <p data-i18n-html="prose.p2">
         这个工具没有超出这个范围。它的价值在于<b>不用装</b>——不需要 conda，
         不需要 Java 运行时，不需要把几十兆的 FASTA 交给别人的服务器。
         文件留在你的硬盘里，计算在你的 CPU 上完成。
       </p>
 
-      <h3 id="limits">它不算什么</h3>
-      <p>
+      <h3 id="limits" data-i18n="limits.h">它不算什么</h3>
+      <p data-i18n-html="limits.p1">
         它不做碱基级比对。共线区段之间的间隔一律按断点处理，
         所以看到的是结构，不是单碱基的插入与缺失。需要精确变异列表时，
         把区段导出去交给 <code>minimap2</code> 或 <code>MUMmer</code>。
         这个工具的定位是<b>先看一眼</b>。
       </p>
-      <p>
+      <p data-i18n-html="limits.p2">
         一致性由种子密度反推（<code>p ≈ (seeds/span)^(1/k)</code>），
         因为 minimiser 采样偏差而略偏低，只能当估计值看。
       </p>
     </div>
 
     <div class="data">
-      <div class="dh">检出区段</div>
-      <div class="dcap" id="tableCap">尚无结果。按参考位置排序；坐标以 Mbp 计。</div>
+      <div class="dh" data-i18n="table.h">检出区段</div>
+      <div class="dcap" id="tableCap" data-i18n="table.emptyRow">尚无结果。按参考位置排序；坐标以 Mbp 计。</div>
       <table>
         <thead>
-          <tr><th>区段</th><th>类型</th><th>参考</th><th>查询</th><th class="n">长度</th><th class="n">一致</th></tr>
+          <tr><th data-i18n="table.th.block">区段</th><th data-i18n="table.th.type">类型</th><th data-i18n="table.th.ref">参考</th><th data-i18n="table.th.qry">查询</th><th class="n" data-i18n="table.th.len">长度</th><th class="n" data-i18n="table.th.ident">一致</th></tr>
         </thead>
         <tbody id="tbody">
           <tr class="empt"><td colspan="6">—</td></tr>
         </tbody>
       </table>
       <div class="data-foot">
-        <button class="link" id="btnCsv" disabled>导出 CSV</button>
+        <button class="link" id="btnCsv" disabled data-i18n="btn.csv">导出 CSV</button>
       </div>
     </div>
 
     <div class="note">
-      <b>如何开始</b>
-      页面加载后点「打开示例数据」，会在本地生成一对带已知结构变异的合成基因组并立即比对。
+      <b data-i18n="faq.h">如何开始</b>
+      <span data-i18n-html="faq.p">页面加载后点「打开示例数据」，会在本地生成一对带已知结构变异的合成基因组并立即比对。
       想看自己的数据，把两个 FASTA 拖进上面的方框即可。超过 50 Mbp 建议按染色体切开分别运行，
-      否则浏览器内存会先于算法到达极限。
+      否则浏览器内存会先于算法到达极限。</span>
     </div>
   </div>
 
   <footer>
-    <span>Synteny · TypeScript 与 Canvas 写成 · 算法为 minimiser 采样与加权链化</span>
-    <span class="right"><a href="https://github.com/haomiaoyan/synteny" rel="noopener" target="_blank">源码</a><a href="https://github.com/haomiaoyan" rel="noopener" target="_blank">作者</a></span>
+    <span data-i18n="footer.left">Synteny · TypeScript 与 Canvas 写成 · 算法为 minimiser 采样与加权链化</span>
+    <span class="right"><a href="https://github.com/haomiaoyan/synteny" rel="noopener" target="_blank" data-i18n="link.source">源码</a><a href="https://github.com/haomiaoyan" rel="noopener" target="_blank" data-i18n="link.author">作者</a></span>
   </footer>
 
 </div>

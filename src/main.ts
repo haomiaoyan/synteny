@@ -6,6 +6,7 @@ import { drawPlot, invertPointer, pointerFraction, viewFromDrag, zoomView, zoomF
 import type { RunRequest, RunReply, RunSuccess } from "./ui/worker.js";
 import { startGlyph } from "./ui/glyph.js";
 import { initTheme } from "./ui/theme.js";
+import { t, lang, initLang, onLangChange } from "./i18n.js";
 
 /**
  * Page controller.
@@ -92,7 +93,27 @@ const el = {
 
 const fmtInt = (n: number): string => n.toLocaleString("en-US");
 
-const setHint = (text: string, cls: "" | "busy" | "err" = ""): void => {
+/** 提示语存的是生成方式而不是成品，换语言时可以照原样再刷一遍。 */
+let hintSpec: { key: string; vars?: Record<string, string | number>; cls: "" | "busy" | "err" } | null =
+  null;
+
+const setHint = (
+  key: string,
+  vars?: Record<string, string | number>,
+  cls: "" | "busy" | "err" = "",
+): void => {
+  hintSpec = { key, vars, cls };
+  el.hint.textContent = t(key, vars);
+  el.hint.className = "hint" + (cls ? " " + cls : "");
+};
+
+const refreshHint = (): void => {
+  if (hintSpec !== null) setHint(hintSpec.key, hintSpec.vars, hintSpec.cls);
+};
+
+/** 已经在别处翻译好、或者来自异常对象的整句提示。 */
+const setHintRaw = (text: string, cls: "" | "busy" | "err" = ""): void => {
+  hintSpec = null;
   el.hint.textContent = text;
   el.hint.className = "hint" + (cls ? " " + cls : "");
 };
@@ -107,9 +128,9 @@ function showSlot(role: "ref" | "qry", seq: Sequence | null): void {
   const slotEl = role === "ref" ? el.slotRef : el.slotQry;
 
   if (seq === null) {
-    nameEl.textContent = "未选择";
+    nameEl.textContent = t("slot.name.empty");
     nameEl.classList.add("empty");
-    metaEl.textContent = "拖入 FASTA，或点击选择";
+    metaEl.textContent = t("slot.meta.empty");
     slotEl.classList.remove("filled");
     return;
   }
@@ -123,9 +144,9 @@ function showSlot(role: "ref" | "qry", seq: Sequence | null): void {
 
 /** Read a file as text, reporting the failure mode rather than swallowing it. */
 async function readText(file: File): Promise<string> {
-  if (file.size === 0) throw new Error(`「${file.name}」是空文件`);
+  if (file.size === 0) throw new Error(t("err.emptyFile", { name: file.name }));
   if (file.size > 200 * 1024 * 1024) {
-    throw new Error(`「${file.name}」有 ${(file.size / 1048576).toFixed(0)} MB，超过浏览器可处理的上限`);
+    throw new Error(t("err.tooBig", { name: file.name, mb: (file.size / 1048576).toFixed(0) }));
   }
 
   // Files straight from NCBI/Ensembl are almost always gzipped, and a visitor
@@ -134,7 +155,7 @@ async function readText(file: File): Promise<string> {
   // exists, because Safari added it later than the others.
   if (isGzip(file)) {
     if (typeof DecompressionStream === "undefined") {
-      throw new Error(`「${file.name}」是 gzip 压缩文件，当前浏览器不支持直接解压。请先解压成 .fa 再拖进来`);
+      throw new Error(t("err.gzip", { name: file.name }));
     }
     const stream = file.stream().pipeThrough(new DecompressionStream("gzip"));
     return new Response(stream).text();
@@ -154,26 +175,26 @@ function isGzip(file: File): boolean {
 
 async function loadFile(role: "ref" | "qry", file: File): Promise<void> {
   try {
-    setHint(`正在读取 ${file.name}…`, "busy");
+    setHint("hint.reading", { name: file.name }, "busy");
     const text = await readText(file);
     const seqs = parseFasta(text);
-    if (seqs.length === 0) throw new Error(`「${file.name}」里没有找到 FASTA 序列`);
+    if (seqs.length === 0) throw new Error(t("err.noFasta", { name: file.name }));
     // Multi-record files are common; the first record is used and the UI says so,
     // rather than silently concatenating chromosomes into one bogus sequence.
     const seq = seqs[0];
     if (seqs.length > 1) {
-      setHint(`「${file.name}」含 ${seqs.length} 条序列，已取第一条（${seq.name}）`, "busy");
+      setHint("hint.oneOfMany", { name: file.name, n: seqs.length, first: seq.name }, "busy");
     }
     if (seq.seq.length < 2000) {
-      throw new Error(`「${seq.name}」只有 ${seq.seq.length} bp，太短了，比对结果没有意义`);
+      throw new Error(t("err.tooShort", { seq: seq.name, bp: seq.seq.length }));
     }
     if (role === "ref") S.ref = seq;
     else S.qry = seq;
     showSlot(role, seq);
     refreshRunButton();
-    if (seqs.length === 1) setHint("两个文件都就位后即可开始。", "");
+    if (seqs.length === 1) setHint("hint.ready");
   } catch (err) {
-    setHint(err instanceof Error ? err.message : String(err), "err");
+    setHintRaw(err instanceof Error ? err.message : String(err), "err");
   }
 }
 
@@ -203,7 +224,7 @@ function run(): void {
   S.requestId += 1;
   refreshRunButton();
   setDot("busy");
-  setHint(`比对中… k=${params.k}, w=${params.w}`, "busy");
+  setHint("hint.running", { k: params.k, w: params.w }, "busy");
 
   const msg: RunRequest = {
     id: S.requestId,
@@ -226,7 +247,7 @@ worker.onmessage = (ev: MessageEvent<RunReply>): void => {
 
   if (!reply.ok) {
     setDot("");
-    setHint(`比对失败：${reply.error}`, "err");
+    setHint("hint.failed", { msg: reply.error }, "err");
     return;
   }
 
@@ -235,17 +256,18 @@ worker.onmessage = (ev: MessageEvent<RunReply>): void => {
   paint(reply);
   setDot("ready");
   const s = reply.stats;
-  setHint(
-    `${fmtInt(reply.segs.length)} 个区段 · ${(s.elapsed / 1000).toFixed(2)} s · 覆盖 ${(s.coverage * 100).toFixed(1)}%`,
-    "",
-  );
+  setHint("hint.summary", {
+    n: fmtInt(reply.segs.length),
+    t: (s.elapsed / 1000).toFixed(2),
+    cov: (s.coverage * 100).toFixed(1),
+  });
 };
 
 worker.onerror = (ev: ErrorEvent): void => {
   S.busy = false;
   refreshRunButton();
   setDot("");
-  setHint(`Worker 出错：${ev.message || "未知错误"}`, "err");
+  setHint("hint.workerError", { msg: ev.message || t("hint.unknownError") }, "err");
 };
 
 /* ---------------------------------------------------------------- paint */
@@ -324,18 +346,22 @@ function paintCaption(res: RunSuccess): void {
   const col = res.segs.filter((x) => x.type === "col").length;
 
   if (res.segs.length === 0) {
-    el.caption.innerHTML =
-      '<span class="n">图</span>没有找到任何保守区段。两条序列可能没有同源关系，或者 k 太大、w 太小。<b>先确认输入</b>，再动手调参。';
+    el.caption.innerHTML = t("cap.none");
     return;
   }
+  const sep = lang() === "zh" ? "，" : ", ";
+  const end = lang() === "zh" ? "。" : ".";
   const bits: string[] = [];
-  bits.push(`<span class="n">图</span>共线 ${col} 段`);
-  if (inv > 0) bits.push(`倒位 ${inv} 段（反斜线）`);
-  if (trn > 0) bits.push(`易位 ${trn} 段（脱离主轴的正斜率方块）`);
+  bits.push(t("cap.col", { n: col }));
+  if (inv > 0) bits.push(t("cap.inv", { n: inv }));
+  if (trn > 0) bits.push(t("cap.trn", { n: trn }));
   bits.push(
-    `覆盖参考的 ${(res.stats.coverage * 100).toFixed(1)}%，共 ${fmtInt(res.stats.seeds)} 个种子`,
+    t("cap.cov", {
+      cov: (res.stats.coverage * 100).toFixed(1),
+      seeds: fmtInt(res.stats.seeds),
+    }),
   );
-  el.caption.innerHTML = bits.join("，") + "。";
+  el.caption.innerHTML = bits.join(sep) + end;
 }
 
 function mmbp(v: number): string {
@@ -364,14 +390,14 @@ function paintTable(segs: readonly Segment[], _nRef: number): void {
     tr.className = "empt";
     const td = document.createElement("td");
     td.colSpan = 6;
-    td.textContent = "没有检出区段";
+    td.textContent = t("table.empty");
     tr.append(td);
     tb.append(tr);
-    el.tableCap.textContent = "没有可列出的区段。";
+    el.tableCap.textContent = t("table.capEmpty");
     return;
   }
 
-  const LABEL: Record<Segment["type"], string> = { col: "共线", inv: "倒位", trn: "易位" };
+  const LABEL: Record<Segment["type"], string> = { col: t("sig.col"), inv: t("sig.inv"), trn: t("sig.trn") };
   const CLS: Record<Segment["type"], string> = { col: "m-col", inv: "m-inv", trn: "m-tr" };
 
   for (const seg of segs) {
@@ -408,7 +434,7 @@ function paintTable(segs: readonly Segment[], _nRef: number): void {
     tb.append(tr);
   }
 
-  el.tableCap.textContent = `共 ${segs.length} 段，按参考位置排序。坐标以 Mbp 计；一致性由种子密度反推。`;
+  el.tableCap.textContent = t("table.capFilled", { n: segs.length });
 }
 
 /* ----------------------------------------------------------------- hover */
@@ -552,14 +578,14 @@ el.figZoom.addEventListener("click", () => {
 
 el.btnDemo.addEventListener("click", () => {
   if (S.busy) return;
-  setHint("正在生成示例基因组…", "busy");
+  setHint("hint.buildingDemo", {}, "busy");
   const demo: Demo = makeDemo();
   S.ref = demo.ref;
   S.qry = demo.qry;
   showSlot("ref", demo.ref);
   showSlot("qry", demo.qry);
   refreshRunButton();
-  el.caption.textContent = demoCaption(demo);
+  el.caption.textContent = demoCaption(demo, lang() === "en");
   run();
 });
 
@@ -735,3 +761,25 @@ if (glyph !== null) startGlyph(glyph);
 
 // 换配色后必须重画：画布上的颜色是从 CSS 变量算出来的，不会自己跟着变。
 initTheme(redraw);
+
+// 换语言只需重刷文字，不必重算比对：结构没变，变的只是说法。
+// 首次对齐不重绘——那时中文原文就在标记里，用词表再写一遍只会引入细微差异。
+let lastLang = lang();
+onLangChange(() => {
+  if (lang() === lastLang) return;
+  lastLang = lang();
+  if (S.result !== null) {
+    paint(S.result);
+  } else {
+    el.caption.innerHTML = t("cap.static");
+    el.tableCap.textContent = t("table.emptyRow");
+    refreshHint();
+  }
+  refreshRunButton();
+  paintAxes();
+});
+
+initLang(() => {
+  const btn = document.getElementById("btnLang");
+  btn?.removeAttribute("hidden");
+});

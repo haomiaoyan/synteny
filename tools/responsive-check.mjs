@@ -58,6 +58,14 @@ for (const w of widths) {
   // 默认打本地预览；设 SYNTENY_URL 就能对已部署的站点跑同一套断言。
   await send("Page.navigate", { url: process.env.SYNTENY_URL || "http://127.0.0.1:5174/" });
   await sleep(1100);
+  // SYNTENY_LANG=en 时先切英文量表；两套文案长度不同，排版风险也不同。
+  // 语言是持久化的：上一次切到 en，这次加载就是 en，盲点一次又切回中文。
+  if (process.env.SYNTENY_LANG === 'en') {
+    if (await ev(`document.documentElement.lang.startsWith('zh')`)) {
+      await ev(`document.getElementById('btnLang').click()`);
+      await sleep(250);
+    }
+  }
   await ev(`document.getElementById('btnDemo').click()`);
   for (let i = 0; i < 120; i += 1) {
     if (await ev(`document.getElementById('figDot').classList.contains('ready')`)) break;
@@ -80,6 +88,9 @@ for (const w of widths) {
       runVisible: run.width > 0 && run.height > 0,
       zoomChipHidden: document.getElementById('figZoom').hidden,
       segs: document.querySelectorAll('#tbody tr').length,
+      lang: document.documentElement.lang,
+      font: getComputedStyle(document.body).fontFamily.split(',')[0].replace(/"/g, ''),
+      tblScroll: tbl.scrollWidth - tbl.clientWidth,
     };
   })()`));
 }

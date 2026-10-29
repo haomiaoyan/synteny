@@ -205,7 +205,18 @@ export function makeDemo(): Demo {
 }
 
 /** Human-facing description of the demo, shown under the plot. */
-export function demoCaption(d: Demo): string {
+export function demoCaption(d: Demo, en = false): string {
+  if (en) {
+    return (
+      `This pair is synthetic: the reference is ${(d.ref.seq.length / 1e6).toFixed(2)} Mbp, ` +
+      `assembled from ${LAYOUT.length} independent stretches of different lengths, ` +
+      `separated by non-homologous spacers. The query then did three things: inverted ` +
+      `three whole blocks, moved two to different positions, and duplicated one; ` +
+      `finally 3% of bases were replaced at random. The correct reading — one main ` +
+      `diagonal, three back-slashes, two positive-slope blocks off the axis, and a ` +
+      `fainter line parallel to the main diagonal.`
+    );
+  }
   return (
     `这一对是程序合成的：参考长 ${(d.ref.seq.length / 1e6).toFixed(2)} Mbp，` +
     `由 ${LAYOUT.length} 段大小不等的独立序列拼成，段间是非同源的间隔序列。` +
