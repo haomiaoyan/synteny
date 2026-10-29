@@ -4,6 +4,7 @@ import { makeDemo, demoCaption, type Demo } from "./core/demo.js";
 import type { Sequence, Segment } from "./core/types.js";
 import { drawPlot, invertPointer, pointerFraction, viewFromDrag, zoomView, zoomFactor, isZoomed, fullView, type PlotState, type View } from "./ui/plot.js";
 import type { RunRequest, RunReply, RunSuccess } from "./ui/worker.js";
+import { startGlyph } from "./ui/glyph.js";
 
 /**
  * Page controller.
@@ -727,3 +728,6 @@ showSlot("ref", null);
 showSlot("qry", null);
 setDot("");
 refreshRunButton();
+
+const glyph = document.getElementById("glyph") as HTMLCanvasElement | null;
+if (glyph !== null) startGlyph(glyph);

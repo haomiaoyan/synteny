@@ -30,7 +30,10 @@
 
   <div class="head">
     <div class="kicker">基因组结构 · 点阵比对</div>
-    <h2 class="title">两个基因组之间，<br><span class="thin">究竟是哪里不一样。</span></h2>
+    <div class="hero">
+      <h2 class="title">两个基因组之间，<br><span class="thin">究竟是哪里不一样。</span></h2>
+      <canvas id="glyph" class="glyph" width="120" height="120" aria-hidden="true"></canvas>
+    </div>
     <p class="standfirst">
       不做碱基级比对，不上传任何序列。把两个 FASTA 拖进浏览器，
       它会告诉你哪几段是对齐的、哪一段整个倒了过来、哪一段搬到了别处——<b>一张图，一眼。</b>
