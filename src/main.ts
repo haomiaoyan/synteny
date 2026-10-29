@@ -807,7 +807,5 @@ onLangChange(() => {
   paintAxes();
 });
 
-initLang(() => {
-  const btn = document.getElementById("btnLang");
-  btn?.removeAttribute("hidden");
-});
+// 按钮的显隐由 initLang 自己负责，这里不再重复处理。
+initLang(() => {});

@@ -359,7 +359,11 @@ export function initLang(onToggle: () => void): void {
     // 隐私模式；记不住无所谓。
   }
 
+  // 按钮在标记里是 hidden 的：脚本没跑起来时它不该出现，出现了也点不动。
+  // 但“显示”必须发生在初始化这里，不能放在点击回调里——那样按钮永远藏着，
+  // 用户根本没有可点的对象。（这个错误真的发生过一次。）
   const btn = document.getElementById("btnLang");
+  btn?.removeAttribute("hidden");
   btn?.addEventListener("click", () => {
     const next: Lang = current === "zh" ? "en" : "zh";
     applyLang(next);

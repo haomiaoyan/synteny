@@ -90,11 +90,25 @@ const GRAB = `(() => {
 
 const empty = await evalIn(GRAB);
 
+// 语言按钮必须在加载后自己出现。它是 hidden 起手的，若“显示”写在点击回调里，
+// 用户永远点不到——脚本用 JS 点击会绕过 hidden，所以只有这里能查出问题。
+const langBtn = await evalIn(`(() => {
+  const b = document.getElementById('btnLang');
+  if (!b) return { present: false };
+  const cs = getComputedStyle(b);
+  return { present: true, hidden: b.hasAttribute('hidden'), display: cs.display, visible: !b.hasAttribute('hidden') && cs.display !== 'none' };
+})()`);
+
 // 跑一遍示例数据，让动态文案（提示、图注、表头、类型名）也出现在页面上。
-await evalIn(`document.getElementById('btnDemo').click(), true`);
-for (let i = 0; i < 120; i += 1) {
-  if (await evalIn(`!!document.getElementById('figDot')?.classList.contains('ready')`)) break;
-  await sleep(200);
+// 远端站点首次加载要拉 chunk + worker，点早了监听器还没绑上，所以失败就再点一次。
+for (let attempt = 0; attempt < 3; attempt += 1) {
+  await evalIn(`document.getElementById('btnDemo').click(), true`);
+  let ok = false;
+  for (let i = 0; i < 100; i += 1) {
+    if (await evalIn(`!!document.getElementById('figDot')?.classList.contains('ready')`)) { ok = true; break; }
+    await sleep(200);
+  }
+  if (ok) break;
 }
 await sleep(400);
 const zh = await evalIn(GRAB);
@@ -115,6 +129,7 @@ console.log(JSON.stringify({
   zhMatchesBaseline: same(zh.norm, baseline.filled.norm),
   emptyMatchesBaseline: same(empty.norm, baseline.empty.norm),
   zhChars: zh.norm.length,
+  langBtnVisibleAtLoad: langBtn,
   enCjkLeft: en.cjkCount,
   enLeftover: en.cjkWords,
   enTitle: en.title,
