@@ -5,6 +5,7 @@ import type { Sequence, Segment } from "./core/types.js";
 import { drawPlot, invertPointer, pointerFraction, viewFromDrag, zoomView, zoomFactor, isZoomed, fullView, type PlotState, type View } from "./ui/plot.js";
 import type { RunRequest, RunReply, RunSuccess } from "./ui/worker.js";
 import { startGlyph } from "./ui/glyph.js";
+import { initTheme } from "./ui/theme.js";
 
 /**
  * Page controller.
@@ -731,3 +732,6 @@ refreshRunButton();
 
 const glyph = document.getElementById("glyph") as HTMLCanvasElement | null;
 if (glyph !== null) startGlyph(glyph);
+
+// 换配色后必须重画：画布上的颜色是从 CSS 变量算出来的，不会自己跟着变。
+initTheme(redraw);

@@ -7,6 +7,20 @@
 <meta name="description" content="在浏览器里比较两个基因组的结构：共线区段、倒位、易位。不上传任何序列。">
 <meta name="theme-color" content="#12100d">
 <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<script>
+/* 主题和语言必须在首屏绘制之前定下来，否则会先闪一下默认配色再跳变。
+   这段必须是传统脚本：type="module" 是延迟执行的，等于没防。
+   localStorage 一律包在 try 里——隐私模式下读写会直接抛异常。 */
+try {
+  var d = document.documentElement;
+  var t = localStorage.getItem("synteny.theme");
+  if (t === "paper" || t === "indigo" || t === "moss") d.setAttribute("data-theme", t);
+  var l = localStorage.getItem("synteny.lang");
+  if (l !== "zh" && l !== "en") l = /^zh/i.test(navigator.language || "zh") ? "zh" : "en";
+  d.setAttribute("data-lang", l);
+  d.lang = l === "zh" ? "zh-CN" : "en";
+} catch (e) {}
+</script>
 <link rel="stylesheet" href="/src/styles/app.css">
 </head>
 <body>
@@ -18,7 +32,20 @@
       <h1>Synteny</h1>
       <span class="desc">一个用来读基因组结构的小工具</span>
       <span class="spacer"></span>
-      <span class="issue">MIT · v0.1</span>
+      <div class="ctrls">
+        <span class="issue">MIT · v0.1</span>
+        <a class="ctrl" id="linkRepo" href="https://github.com/haomiaoyan/synteny"
+           rel="noopener" target="_blank">GitHub</a>
+        <button class="ctrl" id="btnLang" type="button" hidden aria-label="Switch to English">
+          <span data-i18n="ctrl.lang">EN</span>
+        </button>
+        <div class="sw" role="group" aria-label="配色">
+          <button class="sw-b" type="button" data-sw="ink" aria-label="墨色"></button>
+          <button class="sw-b" type="button" data-sw="paper" aria-label="纸色"></button>
+          <button class="sw-b" type="button" data-sw="indigo" aria-label="靛色"></button>
+          <button class="sw-b" type="button" data-sw="moss" aria-label="苔色"></button>
+        </div>
+      </div>
     </div>
     <nav class="subnav">
       <a class="on" href="#tool">工具</a>
@@ -190,7 +217,7 @@
 
   <footer>
     <span>Synteny · TypeScript 与 Canvas 写成 · 算法为 minimiser 采样与加权链化</span>
-    <span class="right"><a href="https://github.com/" id="linkRepo">源码</a></span>
+    <span class="right"><a href="https://github.com/haomiaoyan/synteny" rel="noopener" target="_blank">源码</a><a href="https://github.com/haomiaoyan" rel="noopener" target="_blank">作者</a></span>
   </footer>
 
 </div>

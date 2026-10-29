@@ -21,6 +21,76 @@
   /* 点阵图里「噪声」种子的颜色。画布颜色也由 CSS 变量驱动，
      所以主题换色时图和页面不会脱节。 */
   --dot-noise: #968d7f;
+  /* 悬停读数浮层的底色。不能用 --ink3：浅色主题下会变成一块黑方块。 */
+  --readout-bg: rgba(13, 11, 9, .95);
+  color-scheme: dark;
+}
+
+/* =========================================================================
+   四套主题
+   名字沿用墨版的 ink（页面底色）/ paper（正文色），换到浅色主题时两者反转。
+   朱色 #c2410c 四套都不变——它是这个站点的身份色，换掉整套设计就散了。
+   每套都把自己需要的灰阶重新配过：浅底上原样搬用深色的灰会看不见。
+   ========================================================================= */
+
+[data-theme="paper"] {
+  --ink: #f4f1ea;
+  --ink2: #efeae0;
+  --ink3: #faf7f0;
+  --paper: #1d1a16;
+  --paper-dim: #4a4438;
+  --mute: #6b6355;
+  --faint: #857b6b;
+  --rule: #d9d1c1;
+  --rule2: #b3a894;
+  --accent: #c2410c;
+  --accent-soft: #9c4416;
+  --amber: #8a6410;
+  --ok: #4e6b3a;
+  --err: #a83a24;
+  --dot-noise: #8a8172;
+  --readout-bg: rgba(250, 247, 240, .96);
+  color-scheme: light;
+}
+
+[data-theme="indigo"] {
+  --ink: #0e1420;
+  --ink2: #141b29;
+  --ink3: #0a0f18;
+  --paper: #e8e6df;
+  --paper-dim: #bcc2cb;
+  --mute: #8b95a3;
+  --faint: #636c79;
+  --rule: #222b3a;
+  --rule2: #2f3a4d;
+  --accent: #c2410c;
+  --accent-soft: #e08c5a;
+  --amber: #d9a441;
+  --ok: #7d9b6a;
+  --err: #d1614a;
+  --dot-noise: #8b93a0;
+  --readout-bg: rgba(10, 15, 24, .95);
+  color-scheme: dark;
+}
+
+[data-theme="moss"] {
+  --ink: #101410;
+  --ink2: #161a16;
+  --ink3: #0b0e0b;
+  --paper: #e6e6d8;
+  --paper-dim: #c0c3b6;
+  --mute: #8e9283;
+  --faint: #666b5e;
+  --rule: #262b23;
+  --rule2: #333a30;
+  --accent: #c2410c;
+  --accent-soft: #e08c5a;
+  --amber: #d9a441;
+  --ok: #8aa874;
+  --err: #d1614a;
+  --dot-noise: #93977f;
+  --readout-bg: rgba(11, 14, 11, .95);
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -65,6 +135,62 @@ a { color: inherit; text-decoration: none; }
   gap: 18px;
   padding-bottom: 12px;
   border-bottom: 3px solid var(--paper);
+}
+
+/* 页眉右上角的一行控件：仓库、语言、配色。
+   尺寸与字重都跟着 issue 走，读起来是刊头的元信息，不是应用的工具条。 */
+.ctrls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: .04em;
+}
+
+.ctrl {
+  font: inherit;
+  letter-spacing: inherit;
+  color: var(--mute);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: color .15s;
+}
+
+.ctrl:hover { color: var(--accent-soft); }
+
+/* 键盘用户必须看得见焦点；鼠标用户不该看见描边。 */
+.ctrl:focus-visible,
+.sw-b:focus-visible {
+  outline: 1px solid var(--accent-soft);
+  outline-offset: 3px;
+}
+
+.sw { display: flex; gap: 7px; }
+
+/* 每个色块是它那套主题的两色对角切分：左上为页面底色，右下为正文色。
+   一眼能看出是深是浅，又不用把整页染成那个颜色去预览。 */
+.sw-b {
+  width: 11px;
+  height: 11px;
+  padding: 0;
+  border: 1px solid var(--rule2);
+  border-radius: 50%;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--sw-ink) 0 50%, var(--sw-paper) 50% 100%);
+  transition: box-shadow .15s;
+}
+
+.sw-b[data-sw="ink"]    { --sw-ink: #12100d; --sw-paper: #ece7dc; }
+.sw-b[data-sw="paper"]  { --sw-ink: #f4f1ea; --sw-paper: #1d1a16; }
+.sw-b[data-sw="indigo"] { --sw-ink: #0e1420; --sw-paper: #e8e6df; }
+.sw-b[data-sw="moss"]   { --sw-ink: #101410; --sw-paper: #e6e6d8; }
+
+.sw-b[aria-pressed="true"] {
+  border-color: var(--accent-soft);
+  box-shadow: 0 0 0 2px var(--accent-soft);
 }
 
 .mast-top h1 {
@@ -503,7 +629,7 @@ canvas { display: block; width: 100%; height: 100%; }
   position: absolute;
   z-index: 3;
   pointer-events: none;
-  background: rgba(13, 11, 9, .95);
+  background: var(--readout-bg);
   border: 1px solid var(--rule2);
   padding: 7px 10px;
   font-family: ui-monospace, Menlo, monospace;
